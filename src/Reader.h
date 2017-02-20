@@ -103,10 +103,16 @@ public:
         nprintf(placeholder2, 1023, "%s%s", space.c_str(), place.c_str());
     }
     //! slides the windows with one
-    void ReadItem()
+    /*!
+        @return true if a new sentence have just arrived. Otherwise false.
+    */
+    bool ReadItem()
     {
-        if (pan ? (_discourse[_word] == _eos) : (_discourse.back() == _eos))
-            return BeginSentence();
+        if (IsSentenceBoundary())
+        {
+            BeginSentence();
+            return true;
+        }
         if (_discourse.back() != _eos)
             GetNext();
 
@@ -117,6 +123,7 @@ public:
         }
         else
             ++_word;
+        return false;
     }
     void Print(FILE* fout)const
     {
@@ -146,8 +153,12 @@ public:
     {
         return !_discourse.empty();
     }
+    bool IsSentenceBoundary()const
+    {
+        return pan ? (_discourse[_word] == _eos) : (_discourse.back() == _eos);
+    }
     const Type& GetContext()const{ return _discourse; }
-    const T& GetWord()const{ return _word; }
+    const size_t& GetWord()const{ return _word; }
     const size_t& GetPosition()const{ return _positions[_word]; }
 private:
     bool GetNext()

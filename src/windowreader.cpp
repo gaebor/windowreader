@@ -13,6 +13,7 @@ unsigned int step = 1;
 FILE* input = stdin;
 std::string space = " ", place = "";
 bool pan = false;
+size_t every = 1;
 
 int main(int argc, char* argv[])
 {
@@ -39,6 +40,8 @@ int main(int argc, char* argv[])
             input = fopen(*++argv, "rb");
         else if (arg == "-s" || arg == "--space")
             space = *++argv;
+        else if (arg == "-e" || arg == "--every")
+            every = std::max(atoi(*++argv), 1);
         else if (arg == "-p" || arg == "--pad")
             place = *++argv;
         else if (arg == "-h" || arg == "--help")
@@ -73,12 +76,13 @@ int main(int argc, char* argv[])
         }
         IndexReader reader(input, V, unkown);
         // TODO make sos and eos optional!
-        // TODO pan out optional
         WindowsReader<IndexReader> wr(&reader, window_left, window_right, space, place, V.at(sos), V.at(eos), pan);
         while (wr.IsGood())
         {
             wr.Print(stdout);
-            wr.ReadItem();
+            for (size_t i = 0; i < every; ++i)
+                if (wr.ReadItem() || wr.IsSentenceBoundary())
+                    break;
         }
     }
     else{
@@ -87,7 +91,9 @@ int main(int argc, char* argv[])
         while (wr.IsGood())
         {
             wr.Print(stdout);
-            wr.ReadItem();
+            for (size_t i = 0; i < every; ++i)
+                if (wr.ReadItem() || wr.IsSentenceBoundary())
+                    break;
         }
     }
 	return 0;
