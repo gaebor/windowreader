@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
                 return 1;
             }
         }
-        IndexReader reader(input, V, unkown);
+        IndexReader reader(input, V, unkown, sos, eos);
         // TODO make sos and eos optional!
         WindowsReader<IndexReader> wr(&reader, window_left, window_right, space, place, V.at(sos), V.at(eos), pan);
         while (wr.IsGood())

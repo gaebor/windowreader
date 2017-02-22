@@ -88,8 +88,8 @@ size_t IndexReader::GetIndex(const std::string& w) const
 //    return ReadNext() ? GetIndex(static_cast<const Reader*>(this)->GetItem()) : -1;
 //}
 
-IndexReader::IndexReader(FILE* fin, const Vocabulary& v, std::string unk_token)
-    : Reader(fin), _w2i(&v), _unk(unk_token), _unk_index(v.at(unk_token))
+IndexReader::IndexReader(FILE* fin, const Vocabulary& v, std::string unk_token, std::string sos/*="<s>"*/, std::string eos/*="</s>"*/)
+    : Reader(fin, sos, eos), _w2i(&v), _unk_index(v.at(unk_token))
 {
     _end = v.end();
 }

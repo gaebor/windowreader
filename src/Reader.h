@@ -75,14 +75,13 @@ void CreateVocab(FILE*, Vocabulary& vocab, long long count = 0);
 class IndexReader : public Reader
 {
 public:
-    IndexReader(FILE*, const Vocabulary& v, std::string unk_token);
+    IndexReader(FILE*, const Vocabulary& v, std::string unk_token, std::string sos="<s>", std::string eos="</s>");
     size_t GetItem()const;
     typedef size_t Type;
 private:
     size_t GetIndex(const std::string& w)const;
     const Vocabulary* const _w2i;
     Vocabulary::const_iterator _end;
-    const std::string _unk;
     const size_t _unk_index;
 };
 
