@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <utility>
 #include <iostream>
+#include <fstream>
+#include <string>
 
 #include "Reader.h"
 
@@ -19,74 +21,27 @@ template<>
 const char* Format<size_t>::str = "%zu";
 #endif // _MSC_VER
 
-/*!
-see Dmitry Andreev's (https://github.com/unipolar) cpp implementation in https://github.com/juditacs/wordcount
-*/
-void CreateVocab(FILE* fin, Vocabulary& vocab, long long count)
+Vocabulary ReadVocab(const char* fname)
 {
-	typedef std::vector<std::tuple<long long, std::string>> SortedVocab;
+    Vocabulary V;
+    std::string word;
+    size_t j = 0;
 
-	Reader reader(fin);
-
-	vocab.clear();
-
-	while (reader.ReadNext())
-	{
-		++vocab[reader.GetItem()];
-	}
-
-	SortedVocab sorted(vocab.size());
-	auto sorted_it = sorted.begin();
-	for (auto vocab_it = vocab.begin(); vocab_it != vocab.end(); ++vocab_it, ++sorted_it)
-	{
-		std::get<0>(*sorted_it) = -(long long)(vocab_it->second);
-		std::get<1>(*sorted_it) = vocab_it->first;
-	}
-
-	std::sort(sorted.begin(), sorted.end());
-	vocab.clear();
-
-	auto end = sorted.begin();
-	if (count > 0)
-		std::advance(end, std::min<size_t>(sorted.size(), count));
-	else if (count < 0)
-		end = std::lower_bound(sorted.begin(), sorted.end(), SortedVocab::value_type(count + 1, ""));
-	else
-		end = sorted.end();
-
-	size_t i = 0;
-	for (auto it = sorted.begin(); it < end; ++it, ++i)
-	{
-		vocab[std::get<1>(*it)] = i;
-	}
-}
-
-Vocabulary ReadVocab(FILE* fin)
-{
-	Vocabulary V;
-	char* word = new char[1024];
-	size_t j = 0;
-
-	if (fin)
-		while (fscanf(fin, "%1023[^ \t\r\n\v\f] %*[^\n]\n", word) == 1)
-		{
-			V[word] = j++;
-		}
-
-	delete[] word;
-	return V;
+    std::ifstream ifs(fname, std::ifstream::in);
+    while (ifs)
+    {
+        ifs >> word;
+        V[word] = j++;
+        std::getline(ifs, word);
+    }
+    return V;
 }
 
 size_t IndexReader::GetIndex(const std::string& w) const
 {
-	auto where = _w2i->find(w);
-	return where == _end ? _unk_index : where->second;
+    auto where = _w2i->find(w);
+    return where == _end ? _unk_index : where->second;
 }
-
-//long long IndexReader::GetIndex()
-//{
-//    return ReadNext() ? GetIndex(static_cast<const Reader*>(this)->GetItem()) : -1;
-//}
 
 IndexReader::IndexReader(FILE* fin, const Vocabulary& v, std::string unk_token, std::string sos/*="<s>"*/, std::string eos/*="</s>"*/)
     : Reader(fin, sos, eos), _w2i(&v), _unk_index(v.at(unk_token))
@@ -108,7 +63,14 @@ Reader::Reader(FILE* fin, std::string s/*="<s>"*/, std::string e/*="</s>"*/)
 
 bool Reader::ReadNext()
 {
-    int ch;
+    static int ch;
+    if(state == EOS_P)
+    {
+        state = EOS;
+        actual = &eos;
+        return true;
+    }
+    
     word.clear();
     actual = &word;
     pos += 1;
@@ -165,10 +127,6 @@ bool Reader::ReadNext()
                 return true;
             }
             break;
-        case EOS_P:
-            state = EOS;
-            actual = &eos;
-            return true;
         case EOF_S:
             return false;
     }
@@ -176,10 +134,10 @@ bool Reader::ReadNext()
 
 const std::string& Reader::GetItem() const
 {
-	return *actual;
+    return *actual;
 }
 
 const size_t& Reader::GetPosition() const
 {
-	return pos;
+    return pos;
 }

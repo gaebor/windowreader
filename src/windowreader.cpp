@@ -5,7 +5,7 @@
 #include "Reader.h"
 
 Vocabulary V;
-unsigned int window_left = 2, window_right = 0;
+unsigned int window_left = 1, window_right = 1;
 std::string vocab_filename = "";
 std::string unkown = "<UNK>", sos = "<S>", eos = "</S>";
 unsigned int step = 1;
@@ -16,11 +16,11 @@ size_t every = 1;
 
 int main(int argc, char* argv[])
 {
-	for (++argv; *argv != nullptr; ++argv)
-	{
-		std::string arg(*argv);
-		if (arg == "-v" || arg == "--vocab")
-			vocab_filename = *++argv;
+    for (++argv; *argv != nullptr; ++argv)
+    {
+        std::string arg(*argv);
+        if (arg == "-v" || arg == "--vocab")
+            vocab_filename = *++argv;
         else if (arg == "-w" || arg == "--window")
             window_left = window_right = atoi(*++argv);
         else if (arg == "-l" || arg == "--left")
@@ -90,22 +90,18 @@ int main(int argc, char* argv[])
         }
         else
             std::cerr << "Unknown parameter: \"" << arg << "\"!" << std::endl;
-	}
-	/************************************************************************/
-	/*                                                                      */
-	/************************************************************************/
-	if (!vocab_filename.empty())
-	{
-        FILE* fin = fopen(vocab_filename.c_str(), "r");
-        if (fin)
+    }
+    /************************************************************************/
+    /*                                                                      */
+    /************************************************************************/
+    if (!vocab_filename.empty())
+    {
+        V = ReadVocab(vocab_filename.c_str());
+        if(V.size() == 0)
         {
-            V = ReadVocab(fin);
-            fclose(fin);
-        }else
-        {
-            std::cerr << "Unable to open file \"" << vocab_filename << "\"!" << std::endl;
-			return 1;
-		}
+            std::cerr << "Unable to read file \"" << vocab_filename << "\"!" << std::endl;
+            return 1;
+        }
         for (auto exception : { unkown, sos, eos })
         {
             if (V.find(exception) == V.end())
@@ -136,5 +132,5 @@ int main(int argc, char* argv[])
                     break;
         }
     }
-	return 0;
+    return 0;
 }

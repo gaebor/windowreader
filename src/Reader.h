@@ -1,7 +1,6 @@
 #ifndef INCLUDE_READER_H
 #define INCLUDE_READER_H
 
-#include <limits.h>
 #include <stdio.h>
 
 #include <unordered_map>
@@ -62,15 +61,8 @@ typedef std::unordered_map<std::string, size_t> Vocabulary;
 
 //! reads a vocabulary file into a Vocabulary instance
 /*!
-	mind the hard-coded word length limit, see .cpp file!
 */
-Vocabulary ReadVocab(FILE* fin);
-
-//! build vocabulary from a corpus file
-/*!
-	@param count cutoff
-*/
-void CreateVocab(FILE*, Vocabulary& vocab, long long count = 0);
+Vocabulary ReadVocab(const char* fname);
 
 class IndexReader : public Reader
 {
